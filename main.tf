@@ -19,3 +19,86 @@ resource "aws_vpc" "vpc_main" {
     Name = "Main_VPC"
   }
 }
+
+resource "aws_internet_gateway" "main_igw" {
+  vpc_id = aws_vpc.vpc_main.id
+
+  tags = {
+    Name = "Main_IGW"
+  }
+}
+
+resource "aws_route_table" "main_route_table" {
+  vpc_id = aws_vpc.vpc_main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main_igw.id
+  }
+
+  route {
+    ipv6_cidr_block        = "::/0"
+    egress_only_gateway_id = aws_internet_gateway.main_igw.id
+  }
+
+  tags = {
+    Name = "main_rt"
+  }
+}
+
+resource "aws_subnet" "main_subnet" {
+  vpc_id            = aws_vpc.vpc_main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "subnet_web"
+  }
+}
+
+resource "aws_route_table_association" "rt_main_a" {
+  subnet_id      = aws_subnet.main_subnet.id
+  route_table_id = aws_route_table.main_route_table.id
+}
+
+resource "aws_security_group" "sg_web" {
+  name        = "allow_web"
+  description = "allows web traffic"
+  vpc_id      = aws_vpc.vpc_main.id
+
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    protocol    = "tcp"
+    to_port     = 443
+    cidr_blocks = ["0.0.0.0/0"]
+
+  }
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    protocol    = "tcp"
+    to_port     = 80
+    cidr_blocks = ["0.0.0.0/0"]
+
+  }
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    protocol    = "-1"
+    to_port     = 22
+    cidr_blocks = ["0.0.0.0/0"]
+
+  }
+  ingress {
+    from_port   = 0
+    protocol    = "-1"
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+
+  }
+  tags = {
+    Name = "Main_SG"
+  }
+}
+
