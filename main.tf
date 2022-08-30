@@ -102,3 +102,16 @@ resource "aws_security_group" "sg_web" {
   }
 }
 
+resource "aws_network_interface" "main_nic" {
+  subnet_id = aws_subnet.main_subnet.id
+  private_ips = ["10.0.1.50"]
+  security_groups = [aws_security_group.sg_web.id]
+
+}
+
+resource "aws_eip" "main_elastic" {
+  vpc = true
+  network_interface = aws_network_interface.main_nic.id
+  associate_with_private_ip = "10.0.1.50"
+}
+
