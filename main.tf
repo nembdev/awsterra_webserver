@@ -36,10 +36,6 @@ resource "aws_route_table" "main_route_table" {
     gateway_id = aws_internet_gateway.main_igw.id
   }
 
-  route {
-    ipv6_cidr_block        = "::/0"
-    egress_only_gateway_id = aws_internet_gateway.main_igw.id
-  }
 
   tags = {
     Name = "main_rt"
@@ -85,12 +81,12 @@ resource "aws_security_group" "sg_web" {
   ingress {
     description = "SSH"
     from_port   = 22
-    protocol    = "-1"
+    protocol    = "tcp"
     to_port     = 22
     cidr_blocks = ["0.0.0.0/0"]
 
   }
-  ingress {
+  egress {
     from_port   = 0
     protocol    = "-1"
     to_port     = 0
